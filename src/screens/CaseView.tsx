@@ -2,7 +2,7 @@
 import { useCase } from '../hooks/useCase'
 import { Preparacion } from '../phases/Preparacion'
 import { Seleccion } from '../phases/Seleccion'
-import { DebatePlaceholder } from '../phases/DebatePlaceholder'
+import { Debate } from '../phases/Debate'
 import type { Fase } from '../shared/types'
 
 const TABS: { key: Fase; label: string }[] = [
@@ -49,7 +49,7 @@ export function CaseView({ id, onBack }: { id: string; onBack: () => void }) {
       <main style={{ flex: 1, overflow: 'auto' }}>
         {fase === 'preparacion' && <Preparacion caso={caso} update={update} />}
         {fase === 'seleccion' && <Seleccion caso={caso} update={update} />}
-        {fase === 'debate' && <DebatePlaceholder />}
+        {fase === 'debate' && <Debate caso={caso} update={update} />}
       </main>
     </div>
   )
