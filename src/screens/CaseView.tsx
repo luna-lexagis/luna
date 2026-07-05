@@ -3,6 +3,7 @@ import { useCase } from '../hooks/useCase'
 import { Preparacion } from '../phases/Preparacion'
 import { Seleccion } from '../phases/Seleccion'
 import { Debate } from '../phases/Debate'
+import { LunaPanel } from '../components/LunaPanel'
 import type { Fase } from '../shared/types'
 
 const TABS: { key: Fase; label: string }[] = [
@@ -46,11 +47,14 @@ export function CaseView({ id, onBack }: { id: string; onBack: () => void }) {
           {saveState === 'saving' ? 'Guardando…' : saveState === 'saved' ? 'Guardado' : saveState === 'error' ? 'Error al guardar' : ''}
         </span>
       </header>
-      <main style={{ flex: 1, overflow: 'auto' }}>
-        {fase === 'preparacion' && <Preparacion caso={caso} update={update} />}
-        {fase === 'seleccion' && <Seleccion caso={caso} update={update} />}
-        {fase === 'debate' && <Debate caso={caso} update={update} />}
-      </main>
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 340px', minHeight: 0 }}>
+        <main style={{ overflow: 'auto' }}>
+          {fase === 'preparacion' && <Preparacion caso={caso} update={update} />}
+          {fase === 'seleccion' && <Seleccion caso={caso} update={update} />}
+          {fase === 'debate' && <Debate caso={caso} update={update} />}
+        </main>
+        <LunaPanel caso={caso} fase={fase} update={update} />
+      </div>
     </div>
   )
 }

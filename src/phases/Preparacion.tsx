@@ -1,5 +1,8 @@
 // src/phases/Preparacion.tsx
+import { useState } from 'react'
 import type { Case, Rol } from '../shared/types'
+import { askLuna } from '../lib/luna'
+import { buildSystemPrompt } from '../lib/lunaPrompt'
 
 const card: React.CSSProperties = { background: 'var(--panel)', border: '1px solid var(--line)', borderRadius: 14, padding: 20, marginBottom: 16 }
 const title: React.CSSProperties = { fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 16 }
@@ -66,6 +69,23 @@ export function Preparacion({ caso, update }: { caso: Case; update: (m: (d: Case
       </section>
 
       <section style={card}>
+        <div style={title}>Perfiles de jurado</div>
+        <DetectarPerfiles caso={caso} update={update} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 12 }}>
+          <div>
+            <label>Perfil que busco</label>
+            <textarea className="inp" style={{ minHeight: 70, resize: 'vertical' }} value={caso.perfiles.buscado}
+              onChange={e => update(d => { d.perfiles.buscado = e.target.value })} placeholder="(lo completa Luna, editable)" />
+          </div>
+          <div>
+            <label>Perfil a evitar</label>
+            <textarea className="inp" style={{ minHeight: 70, resize: 'vertical' }} value={caso.perfiles.evitar}
+              onChange={e => update(d => { d.perfiles.evitar = e.target.value })} placeholder="(lo completa Luna, editable)" />
+          </div>
+        </div>
+      </section>
+
+      <section style={card}>
         <div style={title}>Panel</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div>
@@ -82,6 +102,37 @@ export function Preparacion({ caso, update }: { caso: Case; update: (m: (d: Case
           </div>
         </div>
       </section>
+    </div>
+  )
+}
+
+function DetectarPerfiles({ caso, update }: { caso: Case; update: (m: (d: Case) => void) => void }) {
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  async function run() {
+    if (!caso.teoriaDelCaso.teoria.trim() && !caso.teoriaDelCaso.expediente.trim()) {
+      setErr('Cargá primero la teoría del caso o los datos del expediente.'); return
+    }
+    setBusy(true); setErr(null)
+    try {
+      const system = buildSystemPrompt(caso, 'preparacion')
+      const instruccion = 'A partir de la teoría del caso y el expediente, definí qué PERFIL de jurado conviene buscar y cuál evitar (rasgos, actitudes, sesgos previsibles). Respondé SOLO con un objeto JSON válido, sin markdown, con esta forma exacta: {"buscado":"...","evitar":"..."}. Cada valor: 2-4 frases concretas.'
+      const raw = await askLuna(system, [{ role: 'user', content: instruccion }], 700)
+      const clean = raw.replace(/```json/gi, '').replace(/```/g, '').trim()
+      const obj = JSON.parse(clean)
+      update(d => { d.perfiles.buscado = obj.buscado || ''; d.perfiles.evitar = obj.evitar || '' })
+    } catch (e: any) {
+      setErr('No pude detectar los perfiles (' + (e?.message ?? 'error') + '). Reintentá.')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div>
+      <button className="ghost-btn" disabled={busy} onClick={run} style={{ borderColor: 'var(--accent-d)', color: 'var(--accent)' }}>
+        {busy ? 'Analizando el caso…' : '✦ Detectar perfiles con Luna'}
+      </button>
+      {err && <div style={{ color: 'var(--hostil)', fontSize: 11.5, marginTop: 6 }}>{err}</div>}
     </div>
   )
 }
