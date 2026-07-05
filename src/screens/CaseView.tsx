@@ -1,7 +1,7 @@
 // src/screens/CaseView.tsx
 import { useCase } from '../hooks/useCase'
 import { Preparacion } from '../phases/Preparacion'
-import { SeleccionPlaceholder } from '../phases/SeleccionPlaceholder'
+import { Seleccion } from '../phases/Seleccion'
 import { DebatePlaceholder } from '../phases/DebatePlaceholder'
 import type { Fase } from '../shared/types'
 
@@ -48,7 +48,7 @@ export function CaseView({ id, onBack }: { id: string; onBack: () => void }) {
       </header>
       <main style={{ flex: 1, overflow: 'auto' }}>
         {fase === 'preparacion' && <Preparacion caso={caso} update={update} />}
-        {fase === 'seleccion' && <SeleccionPlaceholder />}
+        {fase === 'seleccion' && <Seleccion caso={caso} update={update} />}
         {fase === 'debate' && <DebatePlaceholder />}
       </main>
     </div>
