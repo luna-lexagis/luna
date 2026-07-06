@@ -1,9 +1,11 @@
 // src/screens/CaseView.tsx
+import { useState } from 'react'
 import { useCase } from '../hooks/useCase'
 import { Preparacion } from '../phases/Preparacion'
 import { Seleccion } from '../phases/Seleccion'
 import { Debate } from '../phases/Debate'
 import { LunaPanel } from '../components/LunaPanel'
+import { ExportModal } from '../components/ExportModal'
 import type { Fase } from '../shared/types'
 
 const TABS: { key: Fase; label: string }[] = [
@@ -14,6 +16,7 @@ const TABS: { key: Fase; label: string }[] = [
 
 export function CaseView({ id, onBack }: { id: string; onBack: () => void }) {
   const { caso, saveState, update } = useCase(id)
+  const [showExport, setShowExport] = useState(false)
   if (!caso) return <div style={{ padding: 24 }}>Cargando caso…</div>
   const fase = caso.identificacion.faseActual
   const setFase = (f: Fase) => update(d => { d.identificacion.faseActual = f })
@@ -32,7 +35,8 @@ export function CaseView({ id, onBack }: { id: string; onBack: () => void }) {
             {caso.identificacion.delito ? ` · ${caso.identificacion.delito}` : ''}
           </div>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+        <button className="ghost-btn" style={{ marginLeft: 'auto' }} onClick={() => setShowExport(true)}>Exportar</button>
+        <div style={{ display: 'flex', gap: 4 }}>
           {TABS.map(t => (
             <button key={t.key} onClick={() => setFase(t.key)}
               style={{ padding: '8px 12px', borderRadius: 8, fontSize: 13,
@@ -55,6 +59,7 @@ export function CaseView({ id, onBack }: { id: string; onBack: () => void }) {
         </main>
         <LunaPanel caso={caso} fase={fase} update={update} />
       </div>
+      {showExport && caso && <ExportModal caso={caso} onClose={() => setShowExport(false)} />}
     </div>
   )
 }
